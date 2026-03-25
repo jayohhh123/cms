@@ -2626,15 +2626,16 @@ function genSchedules() {
           const time = slots[Math.floor(Math.random()*slots.length)];
           if (t.label==='회의') {
             const mn = MEETING_NAMES[Math.floor(Math.random()*MEETING_NAMES.length)];
-            COUNSELORS.filter(c => c.id===5||( COUNSELOR_SCHEDULE[c.id]&&COUNSELOR_SCHEDULE[c.id].days.includes(dow)))
+            COUNSELORS.filter(c => c.type!=='external' && (c.id===5||(COUNSELOR_SCHEDULE[c.id]&&COUNSELOR_SCHEDULE[c.id].days.includes(dow))))
               .forEach(c => personal.push({type:'personal',subtype:'timed',label:t.label,icon:t.icon,counselorId:c.id,time,duration:t.duration,meetingName:mn}));
           } else {
-            COUNSELORS.filter(c => c.id!==5&&COUNSELOR_SCHEDULE[c.id]&&COUNSELOR_SCHEDULE[c.id].days.includes(dow))
+            COUNSELORS.filter(c => c.type!=='external' && c.id!==5&&COUNSELOR_SCHEDULE[c.id]&&COUNSELOR_SCHEDULE[c.id].days.includes(dow))
               .forEach(c => personal.push({type:'personal',subtype:'timed',label:t.label,icon:t.icon,counselorId:c.id,time,duration:t.duration}));
           }
         } else {
           const t = PTYPES_ALLDAY[Math.floor(Math.random()*PTYPES_ALLDAY.length)];
-          const c = COUNSELORS[Math.floor(Math.random()*COUNSELORS.length)];
+          const internalC = COUNSELORS.filter(x => x.type === 'internal');
+          const c = internalC[Math.floor(Math.random()*internalC.length)];
           personal.push({type:'personal',subtype:'allday',label:t.label,icon:t.icon,counselorId:c.id});
         }
       }
