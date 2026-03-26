@@ -1365,6 +1365,7 @@ function toggleClientDropdown() {
     dd.classList.remove('open');
     trigger.classList.remove('open');
   } else {
+    _closeAllDropdowns('clientDropdown');
     renderClientList();
     dd.classList.add('open');
     trigger.classList.add('open');
@@ -1386,13 +1387,192 @@ function selectClient(idx) {
   if (text) text.textContent = `${c.name} (${c.phone})`;
   if (trigger) trigger.classList.remove('placeholder');
   closeClientDropdown();
+  checkSubmit();
 }
 
 // 외부 클릭 시 드롭다운 닫기
 document.addEventListener('click', e => {
   const sel = document.getElementById('clientSelect');
   if (sel && !sel.contains(e.target)) closeClientDropdown();
+  ['categorySelect','productSelect','counselorSelect','personalTypeSelect','pCounselorSelect'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.contains(e.target)) {
+      el.querySelector('.f-custom-dropdown')?.classList.remove('open');
+      el.querySelector('.f-custom-trigger')?.classList.remove('open');
+    }
+  });
 });
+
+// ─── 제네릭 드롭다운 헬퍼 ─────────────────────────
+const _ALL_DROPDOWNS = [
+  ['clientDropdown','clientTrigger'],
+  ['categoryDropdown','categoryTrigger'],
+  ['productDropdown','productTrigger'],
+  ['counselorDropdown','counselorTrigger'],
+  ['personalTypeDropdown','personalTypeTrigger'],
+  ['pCounselorDropdown','pCounselorTrigger'],
+];
+function _closeAllDropdowns(exceptDdId) {
+  _ALL_DROPDOWNS.forEach(([ddId, triggerId]) => {
+    if (ddId === exceptDdId) return;
+    document.getElementById(ddId)?.classList.remove('open');
+    document.getElementById(triggerId)?.classList.remove('open');
+  });
+}
+function _ddOpen(ddId, triggerId, renderFn) {
+  _closeAllDropdowns(ddId);
+  if (renderFn) renderFn();
+  document.getElementById(ddId)?.classList.add('open');
+  document.getElementById(triggerId)?.classList.add('open');
+}
+function _ddClose(ddId, triggerId) {
+  document.getElementById(ddId)?.classList.remove('open');
+  document.getElementById(triggerId)?.classList.remove('open');
+}
+function _ddToggle(ddId, triggerId, renderFn) {
+  const dd = document.getElementById(ddId);
+  if (!dd) return;
+  if (dd.classList.contains('open')) _ddClose(ddId, triggerId);
+  else _ddOpen(ddId, triggerId, renderFn);
+}
+
+// ─── 카테고리 드롭다운 ────────────────────────────
+const CATEGORY_LIST = ['일반','마음바우처','인스파이어','화승R&A','삼화','애큐온','미쉐린코리아','SIB','광기술원'];
+let _catSelected = null;
+let _prodSelected = null;
+
+function _renderCategoryList() {
+  const list = document.getElementById('categoryList');
+  if (!list) return;
+  list.innerHTML = CATEGORY_LIST.map((cat, i) =>
+    `<div class="f-custom-item${_catSelected===i?' selected':''}" onmousedown="selectCategory(${i})">${cat}</div>`
+  ).join('');
+}
+function toggleCategoryDropdown() { _ddToggle('categoryDropdown','categoryTrigger',_renderCategoryList); }
+function selectCategory(idx) {
+  _catSelected = idx;
+  _prodSelected = null;
+  const t = document.getElementById('categoryTriggerText');
+  const tr = document.getElementById('categoryTrigger');
+  if (t) t.textContent = CATEGORY_LIST[idx];
+  if (tr) tr.classList.remove('placeholder');
+  _ddClose('categoryDropdown','categoryTrigger');
+  // 상담/검사 필드 활성화 및 초기화
+  const pt = document.getElementById('productTrigger');
+  const ptt = document.getElementById('productTriggerText');
+  if (pt) { pt.classList.remove('disabled'); pt.classList.add('placeholder'); }
+  if (ptt) ptt.textContent = '상담/검사명을 직접 입력하거나 목록에서 선택해 주세요';
+  checkSubmit();
+}
+
+// ─── 상담/검사 드롭다운 ────────────────────────────
+function _getFilteredProducts() {
+  if (_catSelected === null) return [];
+  const catName = CATEGORY_LIST[_catSelected];
+  return PRODUCTS.filter(p => p.cat === catName || p.cat.startsWith(catName + ' '));
+}
+function _renderProductList() {
+  const list = document.getElementById('productList');
+  if (!list) return;
+  const filtered = _getFilteredProducts();
+  list.innerHTML = filtered.length
+    ? filtered.map((p, i) =>
+        `<div class="f-custom-item${_prodSelected===i?' selected':''}" onmousedown="selectProduct(${i})">${p.name}</div>`
+      ).join('')
+    : '<div class="f-custom-item" style="color:#BABABA;pointer-events:none;">해당 카테고리의 항목이 없습니다</div>';
+}
+function toggleProductDropdown() {
+  if (_catSelected === null) return;
+  _ddToggle('productDropdown','productTrigger',_renderProductList);
+}
+function selectProduct(idx) {
+  _prodSelected = idx;
+  const filtered = _getFilteredProducts();
+  const p = filtered[idx];
+  const t = document.getElementById('productTriggerText');
+  const tr = document.getElementById('productTrigger');
+  if (t && p) t.textContent = p.name;
+  if (tr) tr.classList.remove('placeholder');
+  _ddClose('productDropdown','productTrigger');
+  checkSubmit();
+}
+
+// ─── 담당자 드롭다운 공용 렌더러 ─────────────────
+function _renderCounselorItems(listId, selectedId, onSelectFn) {
+  const list = document.getElementById(listId);
+  if (!list) return;
+  const internal = COUNSELORS.filter(c => c.type === 'internal');
+  const external = COUNSELORS.filter(c => c.type === 'external');
+  let html = '';
+  if (internal.length) {
+    html += `<div class="f-custom-group-label">내부상담사</div>`;
+    html += internal.map(c =>
+      `<div class="f-custom-item${selectedId===c.id?' selected':''}" onmousedown="${onSelectFn}('${c.id}')">${c.name}${c.role?' ('+c.role+')':''}</div>`
+    ).join('');
+  }
+  if (external.length) {
+    html += `<div class="f-custom-group-label">외부상담사</div>`;
+    html += external.map(c =>
+      `<div class="f-custom-item${selectedId===c.id?' selected':''}" onmousedown="${onSelectFn}('${c.id}')">${c.name}</div>`
+    ).join('');
+  }
+  list.innerHTML = html;
+}
+
+// ─── 담당자 드롭다운 (내담자 폼) ──────────────────
+let _cnslSelected = null;
+function toggleCounselorDropdown() {
+  _ddToggle('counselorDropdown','counselorTrigger', () => _renderCounselorItems('counselorList', _cnslSelected, 'selectCounselor'));
+}
+function selectCounselor(id) {
+  _cnslSelected = +id;
+  const c = COUNSELORS.find(x => x.id === +id);
+  const t = document.getElementById('counselorTriggerText');
+  const tr = document.getElementById('counselorTrigger');
+  if (t && c) t.textContent = c.name + (c.role ? ` (${c.role})` : '');
+  if (tr) tr.classList.remove('placeholder');
+  _ddClose('counselorDropdown','counselorTrigger');
+  checkSubmit();
+}
+
+// ─── 일정 종류 드롭다운 (상담사 폼) ──────────────
+const PERSONAL_TYPES = ['연차','반차 (오전)','반차 (오후)','외근','보고서 작성','회의'];
+let _ptSelected = null;
+function _renderPersonalTypeList() {
+  const list = document.getElementById('personalTypeList');
+  if (!list) return;
+  list.innerHTML = PERSONAL_TYPES.map((t, i) =>
+    `<div class="f-custom-item${_ptSelected===i?' selected':''}" onmousedown="selectPersonalType(${i})">${t}</div>`
+  ).join('');
+}
+function togglePersonalTypeDropdown() { _ddToggle('personalTypeDropdown','personalTypeTrigger',_renderPersonalTypeList); }
+function selectPersonalType(idx) {
+  _ptSelected = idx;
+  const val = PERSONAL_TYPES[idx];
+  const t = document.getElementById('personalTypeTriggerText');
+  const tr = document.getElementById('personalTypeTrigger');
+  if (t) t.textContent = val;
+  if (tr) tr.classList.remove('placeholder');
+  _ddClose('personalTypeDropdown','personalTypeTrigger');
+  toggleMeetingName(val);
+  checkSubmit();
+}
+
+// ─── 담당자 드롭다운 (상담사 폼) ─────────────────
+let _pCnslSelected = null;
+function togglePCounselorDropdown() {
+  _ddToggle('pCounselorDropdown','pCounselorTrigger', () => _renderCounselorItems('pCounselorList', _pCnslSelected, 'selectPCounselor'));
+}
+function selectPCounselor(id) {
+  _pCnslSelected = +id;
+  const c = COUNSELORS.find(x => x.id === +id);
+  const t = document.getElementById('pCounselorTriggerText');
+  const tr = document.getElementById('pCounselorTrigger');
+  if (t && c) t.textContent = c.name + (c.role ? ` (${c.role})` : '');
+  if (tr) tr.classList.remove('placeholder');
+  _ddClose('pCounselorDropdown','pCounselorTrigger');
+  checkSubmit();
+}
 
 
 let currentDetailSession = null;
@@ -1433,6 +1613,21 @@ function toggleMeetingName(val) {
   }
 }
 
+function checkSubmit() {
+  const btn = document.getElementById('btnSubmit');
+  if (!btn) return;
+  const isClient = document.getElementById('clientF').style.display !== 'none';
+  let valid;
+  if (isClient) {
+    const date = document.getElementById('schedDate')?.value;
+    valid = _clientSelected !== null && _catSelected !== null && _prodSelected !== null && _cnslSelected !== null && !!date;
+  } else {
+    const date = document.getElementById('pSchedDate')?.value;
+    valid = _ptSelected !== null && _pCnslSelected !== null && !!date;
+  }
+  btn.disabled = !valid;
+}
+
 function switchTab(tab) {
   const isClient = tab === 'client';
   document.getElementById('tabClient').classList.toggle('active', isClient);
@@ -1440,6 +1635,7 @@ function switchTab(tab) {
   document.getElementById('clientF').style.display = isClient ? '' : 'none';
   document.getElementById('personalF').style.display = isClient ? 'none' : '';
   document.getElementById('spBody').scrollTop = 0;
+  checkSubmit();
 }
 
 function openModal(dateStr) {
