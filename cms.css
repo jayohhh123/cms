@@ -1534,7 +1534,7 @@ textarea.f-inp { resize: none; line-height: 1.7; }
     .dp-section { border-top: 1px solid #F0F0F0; padding: 12px 0; }
     .dp-section-top { border-top: none; }
     .dp-row { display: flex; align-items: flex-start; gap: 12px; padding: 6px 0; }
-    .dp-label { width: 56px; flex-shrink: 0; color: #999; font-size: 15px; padding-top: 1px; }
+    .dp-label { width: 60px; flex-shrink: 0; color: #999; font-size: 15px; padding-top: 1px; }
     .dp-value { color: var(--text-1); flex: 1; font-size: 16px; line-height: 1.5; }
     .dp-value.bold { font-weight: 600; }
     .dp-c-avatar {
@@ -1571,13 +1571,13 @@ textarea.f-inp { resize: none; line-height: 1.7; }
     .dp-btn-primary:active { background: var(--brand-dark); }
 
     /* 타임라인 기록 */
-    .dp-tl-item { display: flex; align-items: flex-start; gap: 10px; padding-bottom: 12px; }
+    .dp-tl-item { display: flex; align-items: flex-start; gap: 10px; padding-bottom: 20px; }
     .dp-tl-item:last-child { padding-bottom: 0; }
     .dp-tl-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; padding-top: 2px; }
     .dp-tl-dot  { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
     .dp-tl-dot.written   { background: var(--brand); }
     .dp-tl-dot.unwritten { background: #E0E0E0; }
-    .dp-tl-line { width: 1px; flex: 1; min-height: 16px; background: #EFEFEF; margin-top: 3px; }
+    .dp-tl-line { width: 1px; flex: 1; min-height: 20px; background: #EFEFEF; margin-top: 3px; }
     .dp-tl-item:last-child .dp-tl-line { display: none; }
     .dp-tl-content { display: flex; flex-direction: column; gap: 2px; }
     .dp-tl-date   { font-size: 15px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; line-height: 1; }
