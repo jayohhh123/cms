@@ -6,7 +6,7 @@ const COUNSELORS = [
   {id:2,  name:'권하린', hex:'#A351D2', role:'선임상담사', type:'internal'},
   {id:4,  name:'김혜주', hex:'#FFBB00', role:'선임상담사', type:'internal'},
   {id:5,  name:'조예지', hex:'#77D5FA', role:'매니저',    type:'internal'},
-  {id:6,  name:'최혜숙', hex:'#FF7B54', role:'',          type:'external'},
+  {id:6,  name:'최혜숙', hex:'#FF6EB4', role:'',          type:'external'},
   {id:7,  name:'조미나', hex:'#2EC4B6', role:'',          type:'external'},
   {id:8,  name:'왕선아', hex:'#5B8DB8', role:'',          type:'external'},
   {id:9,  name:'박소현', hex:'#F4A261', role:'',          type:'external'},
@@ -56,11 +56,10 @@ const PRODUCTS = [
 ];
 
 const NAMES = [
-  '김지수','이민호','박서연','최준영','정유나','강민준','윤서연','임지훈',
+  '조수행','이민호','박서연','최준영','정유나','강민준','윤서연','임지훈',
   '사범기','오지수','장원우','장요엘','천두인','최혜근','안지현','조성민',
   '황은지','서민준','노유진','전우주','심지은','변재현','곽민서','탁현수',
-  '남가은','석준호','오하린','백지훈','신유미','천재원','나현서','배성민',
-  '구하은','함준혁','표지현','형민준','소유진','두현우','팽서연','계민아',
+  '남가은','석준호','오하린','박지훈','신유미','천재원','나현서','배성민',
 ];
 
 // allday = 종일 칩으로 상단 노출 / timed = 시간 있는 행으로 노출
@@ -237,12 +236,16 @@ function genSchedules() {
           }
           out[key].push({
             type: 'client', time: t,
-            name: NAMES[Math.floor(Math.random() * NAMES.length)],
+            name: (() => {
+            const taken = new Set((out[key]||[]).filter(s=>s.type==='client'&&s.time===t).map(s=>s.name));
+            const avail = NAMES.filter(n => !taken.has(n));
+            return (avail.length ? avail : NAMES)[Math.floor(Math.random()*(avail.length||NAMES.length))];
+          })(),
             phone: `010-${String(1000+Math.floor(Math.random()*9000))}-${String(1000+Math.floor(Math.random()*9000))}`,
             productObj: prod, counselorId: extC.id,
             cancelled: sessionStatus === 'cancelled',
             payStatus, sessionStatus,
-            memo: '', link: '', prevRecords: [],
+            memo: ['2급 라유형\n바우처 1/8회기, 만료:5/16\n서류작성 완료', '초기 상담 진행\n추후 검사 예약 권유', '내담자 요청으로 비대면으로 변경', ''][Math.floor(Math.random()*4)], link: '', prevRecords: [],
             sessionNum: 1 + Math.floor(Math.random() * 4), totalSession: 8,
             price: Math.floor((40000 + Math.random() * 80000) / 1000) * 1000,
             channel: 'phone', confirmed: true,
@@ -270,6 +273,7 @@ function genSessions(min, max, date) {
   const count = min + Math.floor(Math.random() * (max - min));
   // 상담사별 사용 시간 추적 (같은 시간대라도 다른 상담사면 허용)
   const usedByCounselor = {}; // counselorId -> Set of times
+  const usedNameAtTime = {}; // time -> Set of names
   const items = [];
   const now = new Date();
   const todayStr = dk(now);
@@ -343,14 +347,21 @@ function genSessions(min, max, date) {
     items.push({
       type: 'client',
       time: t,
-      name: NAMES[Math.floor(Math.random() * NAMES.length)],
+      name: (() => {
+        const taken = usedNameAtTime[t] || new Set();
+        const avail = NAMES.filter(n => !taken.has(n));
+        const picked = (avail.length ? avail : NAMES)[Math.floor(Math.random() * (avail.length || NAMES.length))];
+        if (!usedNameAtTime[t]) usedNameAtTime[t] = new Set();
+        usedNameAtTime[t].add(picked);
+        return picked;
+      })(),
       phone: `010-${String(1000+Math.floor(Math.random()*9000))}-${String(1000+Math.floor(Math.random()*9000))}`,
       productObj: prod,
       counselorId: c.id,
       cancelled: isCancelled,
       payStatus,
       sessionStatus,
-      memo: Math.random() < 0.5 ? ['2급 라유형\n바우처 1/8회기, 만료:5/16\n서류작성 완료', '초기 상담 진행\n추후 검사 예약 권유', '내담자 요청으로 비대면으로 변경'][Math.floor(Math.random()*3)] : '',
+      memo: ['2급 라유형\n바우처 1/8회기, 만료:5/16\n서류작성 완료', '초기 상담 진행\n추후 검사 예약 권유', '내담자 요청으로 비대면으로 변경', ''][Math.floor(Math.random()*4)],
       link: isOnline ? `https://meet.clify.co.kr/session/${Math.random().toString(36).slice(2,10)}` : '',
       prevRecords,
       sessionNum: 1 + Math.floor(Math.random() * 8),
@@ -1156,8 +1167,8 @@ function openJournal() {
     <span class="jn-meta-label">상담 유형</span><span class="jn-meta-value">${s.productObj ? s.productObj.cat.replace(' - 상담','').replace(' - 검사','') : '-'}</span>
     <span class="jn-meta-label">회기 정보</span><span class="jn-meta-value">${s.sessionNum || 1}회기</span>
     <span class="jn-extra-title">추가 정보</span>
-    <span class="jn-meta-label">성별</span><span class="jn-meta-value">-</span>
-    <span class="jn-meta-label">생년월일</span><span class="jn-meta-value">-</span>
+    <span class="jn-meta-label">성별</span><span class="jn-extra-val">-</span>
+    <span class="jn-meta-label">생년월일</span><span class="jn-extra-val">-</span>
     <span class="jn-meta-label">연락처</span><span class="jn-meta-value">${s.phone || '-'}</span>
   `;
 
@@ -1657,6 +1668,16 @@ function toggleF() {
 
 /* ─── INIT ───────────────────────────────────── */
 render();
+// 새로고침 시 오늘 날짜 위치로 자동 스크롤
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  const t = new Date();
+  const targetKey = dk(new Date(t.getFullYear(), t.getMonth(), t.getDate()));
+  const cell = document.querySelector('[data-date="' + targetKey + '"]');
+  const scroll = document.querySelector('.cal-scroll');
+  if (cell && scroll) {
+    scroll.scrollTo({ top: cell.offsetTop - scroll.offsetTop - 12, behavior: 'auto' });
+  }
+}));
 
 /* ─── 캘린더 행 높이 자동 맞춤 ─────────────────── */
 function fitCalRows() {
@@ -2314,7 +2335,7 @@ const COUNSELORS = [
   {id:2,  name:'권하린', hex:'#A351D2', role:'선임상담사', type:'internal'},
   {id:4,  name:'김혜주', hex:'#FFBB00', role:'선임상담사', type:'internal'},
   {id:5,  name:'조예지', hex:'#77D5FA', role:'매니저',    type:'internal'},
-  {id:6,  name:'최혜숙', hex:'#FF7B54', role:'',          type:'external'},
+  {id:6,  name:'최혜숙', hex:'#FF6EB4', role:'',          type:'external'},
   {id:7,  name:'조미나', hex:'#2EC4B6', role:'',          type:'external'},
   {id:8,  name:'왕선아', hex:'#5B8DB8', role:'',          type:'external'},
   {id:9,  name:'박소현', hex:'#F4A261', role:'',          type:'external'},
@@ -2332,10 +2353,10 @@ const PRODUCTS = [
   {name:'종합심리평가',           cat:'일반 - 검사', min:90},
 ];
 const NAMES = [
-  '김지수','이민호','박서연','최준영','정유나','강민준','윤서연','임지훈',
+  '조수행','이민호','박서연','최준영','정유나','강민준','윤서연','임지훈',
   '사범기','오지수','장원우','장요엘','천두인','최혜근','안지현','조성민',
   '황은지','서민준','노유진','전우주','심지은','변재현','곽민서','탁현수',
-  '남가은','석준호','오하린','백지훈','신유미','천재원','나현서','배성민',
+  '남가은','석준호','오하린','박지훈','신유미','천재원','나현서','배성민',
 ];
 const HOLIDAYS = new Set([
   '2026-01-01','2026-01-28','2026-01-29','2026-01-30',
@@ -2389,6 +2410,7 @@ function genSessions(isSat, date) {
   });
   if (!pool.length) return [];
   const used = {};
+  const usedNameAtTime = {};
   const items = [];
   for (let i = 0; i < count; i++) {
     const c = pool[Math.floor(Math.random()*pool.length)];
@@ -2413,7 +2435,14 @@ function genSessions(isSat, date) {
       return { dateStr:`${pd.getFullYear()}.${p2(pd.getMonth()+1)}.${p2(pd.getDate())}(${DOW_KR[pd.getDay()]})`, dateKey:dk(pd), written:Math.random()<0.6 };
     });
     items.push({
-      type:'client', time:t, name:NAMES[Math.floor(Math.random()*NAMES.length)],
+      type:'client', time:t, name: (() => {
+        const taken = usedNameAtTime[t] || new Set();
+        const avail = NAMES.filter(n => !taken.has(n));
+        const picked = (avail.length ? avail : NAMES)[Math.floor(Math.random()*(avail.length||NAMES.length))];
+        if (!usedNameAtTime[t]) usedNameAtTime[t] = new Set();
+        usedNameAtTime[t].add(picked);
+        return picked;
+      })(),
       phone:`010-${String(1000+Math.floor(Math.random()*9000))}-${String(1000+Math.floor(Math.random()*9000))}`,
       productObj:prod, counselorId:c.id, sessionStatus, payStatus,
       memo:Math.random()<0.4?['초기 상담 진행\n추후 검사 예약 권유','내담자 요청으로 비대면 변경','2급 라유형\n바우처 1/8회기'][Math.floor(Math.random()*3)]:'',
