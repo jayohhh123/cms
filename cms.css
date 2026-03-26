@@ -655,7 +655,7 @@ input:-internal-autofill-selected {
 }
 .f-lbl .req { color: var(--brand); font-size: 14px; line-height: 1; margin-left: 1px; }
 .f-inp, .f-sel {
-  border: 1px solid #E8E8E8; border-radius: 8px;
+  border: 1px solid #E8E8E8; border-radius: 10px;
   padding: 14px 16px; font-size: 14px; line-height: 1.4;
   font-family: 'Pretendard', sans-serif; color: #1A1A1A;
   outline: none; transition: border-color 0.2s; width: 100%;
@@ -676,7 +676,7 @@ input:-internal-autofill-selected {
 /* 커스텀 고객 셀렉트 */
 .f-custom-select { position: relative; }
 .f-custom-trigger {
-  width: 100%; padding: 14px 48px 14px 16px;
+  width: 100%; padding: 14px 16px;
   border: 1px solid #E8E8E8; border-radius: 10px;
   font-size: 14px; font-family: 'Pretendard', sans-serif;
   color: #1A1A1A; background: #fff; cursor: pointer;
@@ -684,6 +684,7 @@ input:-internal-autofill-selected {
   box-sizing: border-box; user-select: none;
 }
 .f-custom-trigger.placeholder { color: #BABABA; }
+.f-custom-trigger.disabled { background: #F5F5F5; color: #BABABA; cursor: not-allowed; }
 .f-custom-trigger svg { flex-shrink: 0; color: #BABABA; transition: transform 0.2s; }
 .f-custom-trigger.open svg { transform: rotate(180deg); }
 .f-custom-dropdown {
@@ -705,6 +706,12 @@ input:-internal-autofill-selected {
 }
 .f-custom-item:hover { background: #F5F7F6; }
 .f-custom-item.selected { background: #F0F6F3; color: var(--brand); }
+.f-custom-group-label {
+  padding: 8px 20px 4px;
+  font-size: 12px;
+  color: #999;
+  font-weight: 600;
+}
 .f-custom-footer {
   border-top: 1px solid #F0F0F0; padding: 13px 20px;
   font-size: 14px; color: #555; cursor: pointer;
@@ -741,25 +748,25 @@ textarea.f-inp { resize: none; line-height: 1.7; }
 
 /* 푸터 */
 .sp-foot {
-  padding: 20px 40px 36px;
-  display: flex; gap: 10px; justify-content: flex-end;
+  padding: 16px 40px 32px;
+  display: flex; gap: 10px;
   flex-shrink: 0;
 }
 .btn-cancel {
-  padding: 13px 36px; border: 1.5px solid #E8E8E8;
-  background: #fff; border-radius: 10px;
-  font-size: 14px; font-weight: 500; color: #888;
+  flex: 1; padding: 15px; border: none;
+  background: #F5F5F5; border-radius: 10px;
+  font-size: 14px; font-weight: 400; color: #555;
   cursor: pointer; font-family: 'Pretendard', sans-serif;
   transition: background 0.2s;
 }
-.btn-cancel:hover { background: #F5F5F5; }
+.btn-cancel:hover { background: #EBEBEB; }
 .btn-submit {
-  padding: 13px 36px; background: #B8D8C4; border: none;
-  border-radius: 10px; font-size: 14px; font-weight: 600;
+  flex: 1; padding: 15px; background: var(--brand); border: none;
+  border-radius: 10px; font-size: 14px; font-weight: 400;
   color: #fff; cursor: pointer; font-family: 'Pretendard', sans-serif;
   transition: background 0.2s;
 }
-.btn-submit:hover { background: #9ECDB0; }
+.btn-submit:hover { background: var(--brand-dark); }
 .btn-submit:disabled { background: #E0E0E0; color: #fff; cursor: not-allowed; }
 
 /* ── 상세 패널 ── */
