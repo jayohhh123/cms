@@ -2545,6 +2545,7 @@ function mob_openDp(s, c) {
 
   colorBar.style.background = c ? c.hex : '#ccc';
   scroll.innerHTML = '';
+  scroll.scrollTop = 0;
   footer.innerHTML = '';
 
   const isPersonal = s.type==='personal';
