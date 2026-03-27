@@ -466,10 +466,21 @@
         <div style="height:24px;"></div>
       </div>
       </div><!-- /jn-content -->
-      <!-- 푸터 -->
-      <div class="jn-footer">
+      <!-- 푸터: 작성 모드 -->
+      <div class="jn-footer" id="jnFooterWrite">
         <button class="dp-btn dp-btn-secondary" style="flex:1;" onclick="closeJournal()">취소</button>
         <button class="dp-btn dp-btn-primary" style="flex:1;">저장</button>
+      </div>
+      <!-- 푸터: 보기 모드 -->
+      <div class="jn-footer jn-footer-nav" id="jnFooterView" style="display:none;">
+        <button class="jn-nav-btn" id="jnBtnPrev">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          이전 일지
+        </button>
+        <button class="jn-nav-btn" id="jnBtnNext">
+          다음 일지
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
       </div>
     </div>
 
