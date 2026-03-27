@@ -13,6 +13,13 @@ const COUNSELORS = [
   {id:10, name:'강미숙', hex:'#C06C84', role:'',          type:'external'},
 ];
 
+const COUNSELOR_AVATAR_IDS = new Set([1,2,3,4,5]);
+function counselorAvatarHTML(c) {
+  if (COUNSELOR_AVATAR_IDS.has(c.id)) {
+    return `<span class="dp-counselor-avatar" style="overflow:hidden;padding:0;"><img src="images/avatars/${c.id}.png" alt="${c.name}" style="width:100%;height:100%;object-fit:cover;display:block;"></span>`;
+  }
+  return `<span class="dp-counselor-avatar" style="background:${c.hex}">${c.name[0]}</span>`;
+}
 
 const PRODUCTS = [
   {name:'센터장 일반상담 (50분)',          cat:'일반 - 상담', min:50},
@@ -931,7 +938,7 @@ function openPersonalDetail(s, c, dateKey) {
     <div class="dp-row">
       <span class="dp-label">담당자</span>
       <span class="dp-value" style="display:flex;align-items:center;">
-        <span class="dp-counselor-avatar" style="background:${c.hex}">${c.name[0]}</span>
+        ${counselorAvatarHTML(c)}
         ${c.name}
       </span>
     </div>
@@ -1037,7 +1044,7 @@ function openDetail(s, c, dateKey) {
     <div class="dp-row">
       <span class="dp-label">담당자</span>
       <span class="dp-value" style="display:flex;align-items:center;">
-        <span class="dp-counselor-avatar" style="background:${c.hex}">${c.name[0]}</span>
+        ${counselorAvatarHTML(c)}
         ${c.name}
       </span>
     </div>
@@ -2275,7 +2282,7 @@ function openPersonalDetail(s, c, dateKey) {
     <div class="dp-row">
       <span class="dp-label">담당자</span>
       <span class="dp-value" style="display:flex;align-items:center;">
-        <span class="dp-counselor-avatar" style="background:${c.hex}">${c.name[0]}</span>
+        ${counselorAvatarHTML(c)}
         ${c.name}
       </span>
     </div>
