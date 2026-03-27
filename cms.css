@@ -1555,6 +1555,11 @@ textarea.f-inp { resize: none; line-height: 1.7; }
       display: inline-flex; align-items: center; justify-content: center;
       color: #fff; flex-shrink: 0; margin-right: 5px;
     }
+    .dp-c-avatar:has(img) {
+      border-radius: 50px;
+      border: 1px solid var(--clify-grey-100, #EEE);
+      background: var(--clify-grey-50, #F6F7F8);
+    }
     .dp-memo-box {
       background: #F7F8F7; border-radius: 8px;
       padding: 10px 12px; font-size: 15px; line-height: 1.7;
