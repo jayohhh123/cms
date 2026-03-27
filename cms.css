@@ -1717,6 +1717,21 @@ textarea.f-inp { resize: none; line-height: 1.7; }
 }
 .jn-input::placeholder, .jn-textarea::placeholder { color: var(--text-3); }
 .jn-input:focus, .jn-textarea:focus { outline: 2px solid var(--brand-mid); }
+.dp-journal-view.view-mode .jn-input:disabled,
+.dp-journal-view.view-mode .jn-textarea:disabled,
+.dp-journal-view.view-mode .jn-score-input:disabled {
+  background: #F7F8F7; color: var(--text-1);
+  cursor: default; opacity: 1; resize: none; pointer-events: none;
+}
+.jn-footer-nav { justify-content: space-between; }
+.jn-nav-btn {
+  display: flex; align-items: center; gap: 6px;
+  border: none; background: transparent; cursor: pointer;
+  font-size: 14px; color: var(--text-2); font-family: inherit;
+  padding: 6px 4px; border-radius: 6px;
+}
+.jn-nav-btn:hover { color: var(--text-1); background: #F5F5F5; }
+.jn-nav-btn:disabled { color: #CCC; cursor: default; background: transparent; }
 .jn-section-label {
   font-size: 12px; color: var(--text-3); font-weight: 500;
   margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
