@@ -1126,7 +1126,7 @@ function openDetail(s, c, dateKey) {
     return;
   }
   const hasRecord = s.prevRecords && s.prevRecords.some(r => r.written);
-  const journalBtn = `<button class="dp-btn dp-btn-secondary" onclick="openJournal()">
+  const journalBtn = `<button class="dp-btn dp-btn-secondary" onclick="openJournal(${hasRecord})">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
     ${hasRecord ? '상담일지 보기' : '상담일지 작성'}
   </button>`;
@@ -1150,7 +1150,7 @@ function openDetail(s, c, dateKey) {
 
 
 /* ─── 상담일지 작성 ────────────────────────── */
-function openJournal() {
+function openJournal(viewMode = false) {
   const s = currentDetailSession;
   if (!s) return;
   const DOW_KR = ['일','월','화','수','목','금','토'];
@@ -1205,6 +1205,18 @@ function openJournal() {
     </tr>`).join('');
 
   switchJnTab('journal', document.querySelector('.jn-tab'));
+  const jnView = document.getElementById('dpJournalView');
+  jnView.querySelectorAll('.jn-input, .jn-textarea, .jn-score-input').forEach(el => {
+    el.disabled = viewMode;
+  });
+  jnView.classList.toggle('view-mode', viewMode);
+  document.getElementById('jnFooterWrite').style.display = viewMode ? 'none' : '';
+  document.getElementById('jnFooterView').style.display  = viewMode ? '' : 'none';
+  const jnContent = document.querySelector('#dpJournalView .jn-content');
+  if (jnContent) jnContent.scrollTop = 0;
+  if (viewMode) {
+    document.getElementById('jnBtnPrev').disabled = (s.sessionNum <= 1);
+  }
   document.getElementById('detailPanel').classList.add('journal-open');
 }
 
