@@ -14,11 +14,12 @@ const COUNSELORS = [
 ];
 
 const COUNSELOR_AVATAR_IDS = new Set([1,2,3,4,5]);
-function counselorAvatarHTML(c) {
+function counselorAvatarHTML(c, cls='dp-counselor-avatar') {
+  if (!c) return `<span class="${cls}" style="background:#ccc"></span>`;
   if (COUNSELOR_AVATAR_IDS.has(c.id)) {
-    return `<span class="dp-counselor-avatar" style="overflow:hidden;padding:0;"><img src="images/avatars/${c.id}.png" alt="${c.name}" style="width:100%;height:100%;object-fit:cover;display:block;"></span>`;
+    return `<span class="${cls}" style="overflow:hidden;padding:0;"><img src="images/avatars/${c.id}.png" alt="${c.name}" style="width:100%;height:100%;object-fit:cover;display:block;"></span>`;
   }
-  return `<span class="dp-counselor-avatar" style="background:${c.hex}">${c.name[0]}</span>`;
+  return `<span class="${cls}" style="background:${c.hex}">${c.name[0]}</span>`;
 }
 
 const PRODUCTS = [
@@ -2798,7 +2799,7 @@ function mob_openDp(s, c) {
         <div class="dp-row">
           <span class="dp-label">담당자</span>
           <span class="dp-value" style="display:flex;align-items:center;">
-            <span class="dp-c-avatar" style="background:${c?c.hex:'#ccc'}">${c?c.name[0]:''}</span>${c?c.name:'-'}
+            ${counselorAvatarHTML(c,'dp-c-avatar')}${c?c.name:'-'}
           </span>
         </div>
       </div>`;
@@ -2841,7 +2842,7 @@ function mob_openDp(s, c) {
         <div class="dp-row">
           <span class="dp-label">담당자</span>
           <span class="dp-value" style="display:flex;align-items:center;">
-            <span class="dp-c-avatar" style="background:${c?c.hex:'#ccc'}">${c?c.name[0]:''}</span>${c?c.name:'-'}
+            ${counselorAvatarHTML(c,'dp-c-avatar')}${c?c.name:'-'}
           </span>
         </div>
         <div class="dp-row"><span class="dp-label">카테고리</span><span class="dp-value">${s.productObj?s.productObj.cat.replace(' - 상담','').replace(' - 검사',''):'-'}</span></div>
