@@ -247,9 +247,10 @@
           </div>
         </div>
         <div class="f-row">
-          <label class="f-lbl">일정 <span class="req">*</span></label>
-          <div class="f-inp-icon-wrap">
-            <input type="text" class="f-inp" id="schedDate" placeholder="여기를 클릭하여 일시를 선택해 주세요" onfocus="this.type='datetime-local'" onblur="if(!this.value)this.type='text'" onchange="checkSubmit()">
+          <label class="f-lbl">일시 <span class="req">*</span></label>
+          <div class="f-inp-icon-wrap" onclick="openSchedPicker('client')" style="cursor:pointer;">
+            <input type="text" class="f-inp" id="schedDateDisplay" placeholder="여기를 클릭하여 일시를 선택해 주세요" readonly style="cursor:pointer;pointer-events:none;">
+            <input type="hidden" id="schedDate">
             <svg class="f-inp-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </div>
         </div>
@@ -295,9 +296,10 @@
           </div>
         </div>
         <div class="f-row">
-          <label class="f-lbl">일정 <span class="req">*</span></label>
-          <div class="f-inp-icon-wrap">
-            <input type="datetime-local" class="f-inp" id="pSchedDate" onchange="checkSubmit()">
+          <label class="f-lbl">일시 <span class="req">*</span></label>
+          <div class="f-inp-icon-wrap" onclick="openSchedPicker('personal')" style="cursor:pointer;">
+            <input type="text" class="f-inp" id="pSchedDateDisplay" placeholder="여기를 클릭하여 일시를 선택해 주세요" readonly style="cursor:pointer;pointer-events:none;">
+            <input type="hidden" id="pSchedDate">
             <svg class="f-inp-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </div>
         </div>
@@ -319,6 +321,37 @@
 </div>
 
 
+
+<!-- ── 일시 선택 모달 ── -->
+<div id="schedPickerOverlay" class="schp-overlay" onclick="if(event.target===this)closeSchedPicker()">
+  <div class="schp-modal">
+    <div class="schp-head">
+      <button class="schp-nav" onclick="schedPickerPrevWeek()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span id="schedPickerTitle" class="schp-title"></span>
+      <button class="schp-nav" onclick="schedPickerNextWeek()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button class="schp-close" onclick="closeSchedPicker()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="schp-body" id="schedPickerGrid"></div>
+    <div class="schp-foot" id="schedPickerFoot">
+      <div class="schp-foot-info">
+        <span class="schp-foot-label">선택 일정</span>
+        <span class="schp-foot-divider">|</span>
+        <span class="schp-foot-selected" id="schedPickerSelected">날짜를 선택해 주세요</span>
+        <button class="schp-foot-reset" id="schedPickerReset" onclick="resetSchedPicker()" style="display:none;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.57"/></svg>
+          다시 선택
+        </button>
+      </div>
+      <button class="schp-foot-btn" id="schedPickerConfirm" onclick="confirmSchedPicker()" disabled>일정 추가</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── 상세 패널 ── -->
 <div class="uc-overlay" id="ucOverlay">
@@ -419,47 +452,48 @@
         <div class="jn-section-label">
           FAV 결과 <span class="jn-section-date" id="jnFavDate"></span>
         </div>
-        <table class="jn-table">
+        <table class="jn-table" id="jnFavTable">
           <thead><tr><th>지표</th><th>점수</th><th>단계</th><th>상태</th></tr></thead>
           <tbody>
-            <tr><td style="font-weight:600;">종합 점수</td><td><input class="jn-score-input" type="number" placeholder="–"></td><td><span class="jn-badge-level" id="jnFavTotalLevel">–</span></td><td><span class="jn-status-text" id="jnFavTotalStatus">–</span></td></tr>
-            <tr><td>스트레스</td><td><input class="jn-score-input" type="number" placeholder="–"></td><td><span class="jn-badge-level">–</span></td><td><span class="jn-status-text">–</span></td></tr>
-            <tr><td>우울</td><td><input class="jn-score-input" type="number" placeholder="–"></td><td><span class="jn-badge-level">–</span></td><td><span class="jn-status-text">–</span></td></tr>
-            <tr><td>불안</td><td><input class="jn-score-input" type="number" placeholder="–"></td><td><span class="jn-badge-level">–</span></td><td><span class="jn-status-text">–</span></td></tr>
+            <tr><td style="font-weight:600;">종합 점수</td><td><input class="jn-score-text" id="jnFavScore0" type="number" min="0" max="100" oninput="calcFavLevel()"></td><td><span id="jnFavTotalLevel">–</span></td><td><span class="jn-status-text" id="jnFavTotalStatus">–</span></td></tr>
+            <tr><td>스트레스</td><td><input class="jn-score-text" id="jnFavScore1" type="number" min="0" max="100" oninput="calcFavLevel()"></td><td><span id="jnFavStressLevel">–</span></td><td><span class="jn-status-text" id="jnFavStressStatus">–</span></td></tr>
+            <tr><td>우울</td><td><input class="jn-score-text" id="jnFavScore2" type="number" min="0" max="100" oninput="calcFavLevel()"></td><td><span id="jnFavDepLevel">–</span></td><td><span class="jn-status-text" id="jnFavDepStatus">–</span></td></tr>
+            <tr><td>불안</td><td><input class="jn-score-text" id="jnFavScore3" type="number" min="0" max="100" oninput="calcFavLevel()"></td><td><span id="jnFavAnxLevel">–</span></td><td><span class="jn-status-text" id="jnFavAnxStatus">–</span></td></tr>
           </tbody>
         </table>
-        <div class="jn-section-label">
+        <div class="jn-section-label" style="margin-top: 32px;">
           PHQ-9 결과 <span class="jn-section-date" id="jnPhqDate"></span>
-          <span style="margin-left:auto;font-size:12px;color:var(--brand);cursor:pointer;">결과 자세히 보기 ↑</span>
         </div>
-        <table class="jn-table">
+        <table class="jn-table" id="jnPhqSummaryTable">
           <thead><tr><th>구분</th><th>점수</th><th>심각도</th><th>이전 대비</th></tr></thead>
           <tbody>
             <tr>
               <td>총점</td>
-              <td><input class="jn-score-input" id="jnPhqTotal" type="number" placeholder="–" readonly> <span style="color:var(--text-3);font-size:12px;">/ 27</span></td>
+              <td><input class="jn-score-input" id="jnPhqTotal" type="number" readonly> <span style="color:var(--text-3);font-size:12px;">/ 27</span></td>
               <td><span class="jn-status-text" id="jnPhqSeverity">–</span></td>
               <td><span class="jn-prev-diff" id="jnPhqDiff">–</span></td>
             </tr>
           </tbody>
         </table>
         <div class="jn-phq-subtitle">1) 영역별 점수</div>
-        <table class="jn-table">
+        <table class="jn-table" id="jnPhqAreaTable">
           <thead><tr><th>영역</th><th>해당 문항</th><th>합계</th></tr></thead>
           <tbody>
-            <tr><td>기분·흥미</td><td style="color:var(--text-3);">1, 2</td><td><input class="jn-score-input" id="jnArea1" type="number" placeholder="–" readonly></td></tr>
-            <tr><td>신체 증상</td><td style="color:var(--text-3);">3, 4, 5, 8</td><td><input class="jn-score-input" id="jnArea2" type="number" placeholder="–" readonly></td></tr>
-            <tr><td>인지</td><td style="color:var(--text-3);">6, 7</td><td><input class="jn-score-input" id="jnArea3" type="number" placeholder="–" readonly></td></tr>
-            <tr><td>자살 위험</td><td style="color:var(--text-3);">9</td><td><input class="jn-score-input" id="jnArea4" type="number" placeholder="–" readonly></td></tr>
+            <tr><td>기분·흥미</td><td style="color:var(--text-3);">1, 2</td><td><input class="jn-score-input" id="jnArea1" type="number" readonly></td></tr>
+            <tr><td>신체 증상</td><td style="color:var(--text-3);">3, 4, 5, 8</td><td><input class="jn-score-input" id="jnArea2" type="number" readonly></td></tr>
+            <tr><td>인지</td><td style="color:var(--text-3);">6, 7</td><td><input class="jn-score-input" id="jnArea3" type="number" readonly></td></tr>
+            <tr><td>자살 위험</td><td style="color:var(--text-3);">9</td><td><input class="jn-score-input" id="jnArea4" type="number" readonly></td></tr>
           </tbody>
         </table>
-        <div class="jn-phq-subtitle">2) 문항별 점수</div>
-        <div class="jn-phq-note">* 문항별 점수를 입력하면 점수가 자동 계산됩니다.</div>
-        <table class="jn-table">
-          <thead><tr><th>문항</th><th>내용</th><th>점수</th></tr></thead>
+        <div class="jn-phq-subtitle-row">
+          <div class="jn-phq-subtitle">2) 문항별 점수</div>
+          <div class="jn-phq-note">* 문항별 점수를 입력하면 점수가 자동 계산됩니다.</div>
+        </div>
+        <table class="jn-table" id="jnPhqItemTable">
+          <thead><tr><th style="white-space: nowrap;">문항</th><th>내용</th><th>점수</th></tr></thead>
           <tbody id="jnPhqItems"></tbody>
         </table>
-        <div class="jn-field">
+        <div class="jn-field" style="margin-top: 32px;">
           <label class="jn-field-label">병원 피드백</label>
           <textarea class="jn-textarea" rows="3" placeholder="병원 방문 후 증상 변화에 대해 내담자가 기억하거나 전달받은 내용이 있다면 기록해 주세요."></textarea>
         </div>
