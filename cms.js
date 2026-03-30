@@ -1200,13 +1200,13 @@ function openJournal(viewMode = false) {
     <tr>
       <td style="color:var(--text-3);width:32px;">${i+1}</td>
       <td>${q}</td>
-      <td><input class="jn-score-input" type="number" min="0" max="3" placeholder="–"
+      <td><input class="jn-score-input" type="number" min="0" max="3"
         oninput="calcPhqTotal()"></td>
     </tr>`).join('');
 
   switchJnTab('journal', document.querySelector('.jn-tab'));
   const jnView = document.getElementById('dpJournalView');
-  jnView.querySelectorAll('.jn-input, .jn-textarea, .jn-score-input').forEach(el => {
+  jnView.querySelectorAll('.jn-input, .jn-textarea, .jn-score-input, .jn-score-text').forEach(el => {
     el.disabled = viewMode;
   });
   jnView.classList.toggle('view-mode', viewMode);
@@ -1229,6 +1229,34 @@ function switchJnTab(tab, btn) {
   btn.classList.add('active');
   document.getElementById('jnBodyJournal').style.display = tab === 'journal' ? '' : 'none';
   document.getElementById('jnBodyExtra').style.display   = tab === 'extra'   ? '' : 'none';
+}
+
+function calcFavLevel() {
+  const rows = [
+    ['jnFavScore0', 'jnFavTotalLevel',  'jnFavTotalStatus'],
+    ['jnFavScore1', 'jnFavStressLevel', 'jnFavStressStatus'],
+    ['jnFavScore2', 'jnFavDepLevel',    'jnFavDepStatus'],
+    ['jnFavScore3', 'jnFavAnxLevel',    'jnFavAnxStatus'],
+  ];
+  rows.forEach(([scoreId, levelId, statusId]) => {
+    const inp = document.getElementById(scoreId);
+    const levelEl = document.getElementById(levelId);
+    const statusEl = document.getElementById(statusId);
+    if (!inp || !levelEl || !statusEl) return;
+    const v = inp.value !== '' ? parseInt(inp.value) : null;
+    if (v === null || isNaN(v)) {
+      levelEl.textContent = '–'; levelEl.className = '';
+      statusEl.textContent = '–'; statusEl.className = 'jn-status-text';
+      return;
+    }
+    let lv, lvCls, status, stCls;
+    if      (v >= 71) { lv = '1단계'; lvCls = 'lv1'; status = '매우 양호'; stCls = 'good'; }
+    else if (v >= 61) { lv = '2단계'; lvCls = 'lv2'; status = '양호';      stCls = 'good'; }
+    else if (v >= 51) { lv = '3단계'; lvCls = 'lv3'; status = '보통';      stCls = 'caution'; }
+    else              { lv = '4단계'; lvCls = 'lv4'; status = '주의 필요'; stCls = 'danger'; }
+    levelEl.textContent = lv;      levelEl.className = `jn-badge-level ${lvCls}`;
+    statusEl.textContent = status; statusEl.className = `jn-status-text ${stCls}`;
+  });
 }
 
 function calcPhqTotal() {
@@ -2936,4 +2964,184 @@ window.mob_closeList    = mob_closeList;
 window.mob_listMoveDate = mob_listMoveDate;
 window.mob_openDp       = mob_openDp;
   }
+
+/* ── 일시 선택 모달 ── */
+(function() {
+  let _mode = 'client';
+  let _weekStart = null; // Monday of displayed week
+  let _pendingDate = null; // 'YYYY-MM-DD'
+  let _pendingTime = null; // 'HH:MM'
+
+  function _getMondayOf(date) {
+    const d = new Date(date);
+    const dow = d.getDay();
+    const diff = dow === 0 ? -6 : 1 - dow;
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  const DOW_KR = ['일','월','화','수','목','금','토'];
+
+  window.openSchedPicker = function(mode) {
+    _mode = mode;
+    _pendingDate = null;
+    _pendingTime = null;
+    _weekStart = _getMondayOf(new Date());
+    _render();
+    _updateFoot();
+    document.getElementById('schedPickerOverlay').classList.add('open');
+  };
+
+  window.closeSchedPicker = function() {
+    document.getElementById('schedPickerOverlay').classList.remove('open');
+  };
+
+  window.schedPickerPrevWeek = function() {
+    _weekStart.setDate(_weekStart.getDate() - 7);
+    _render();
+  };
+
+  window.schedPickerNextWeek = function() {
+    _weekStart.setDate(_weekStart.getDate() + 7);
+    _render();
+  };
+
+  window.selectSchedSlot = function(dateStr, time) {
+    _pendingDate = dateStr;
+    _pendingTime = time;
+    _render();
+    _updateFoot();
+  };
+
+  window.resetSchedPicker = function() {
+    _pendingDate = null;
+    _pendingTime = null;
+    _render();
+    _updateFoot();
+  };
+
+  window.confirmSchedPicker = function() {
+    if (!_pendingDate || !_pendingTime) return;
+    const [y, m, d] = _pendingDate.split('-');
+    const display = `${y}년 ${parseInt(m)}월 ${parseInt(d)}일 ${_pendingTime}`;
+    if (_mode === 'client') {
+      document.getElementById('schedDate').value = `${_pendingDate}T${_pendingTime}`;
+      document.getElementById('schedDateDisplay').value = display;
+    } else {
+      document.getElementById('pSchedDate').value = `${_pendingDate}T${_pendingTime}`;
+      document.getElementById('pSchedDateDisplay').value = display;
+    }
+    closeSchedPicker();
+    checkSubmit();
+  };
+
+  function _updateFoot() {
+    const selEl = document.getElementById('schedPickerSelected');
+    const resetEl = document.getElementById('schedPickerReset');
+    const confirmBtn = document.getElementById('schedPickerConfirm');
+    if (!_pendingDate || !_pendingTime) {
+      selEl.textContent = '날짜를 선택해 주세요';
+      resetEl.style.display = 'none';
+      confirmBtn.disabled = true;
+      return;
+    }
+    const d = new Date(_pendingDate + 'T00:00:00');
+    const dow = DOW_KR[d.getDay()];
+    const [y, mo, da] = _pendingDate.split('-');
+    const endTime = addMin(_pendingTime, 50);
+    selEl.textContent = `${y}.${mo}.${da}(${dow}) ${_pendingTime} ~ ${endTime} (50분)`;
+    resetEl.style.display = 'flex';
+    confirmBtn.disabled = false;
+  }
+
+  function _timeToMins(t) {
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  // 해당 날짜의 counselorId 세션 목록에서 슬롯 t와 겹치는 세션 반환
+  function _getBookedSession(dateStr, counselorId, t) {
+    const sched = window.__SCHED;
+    if (!sched) return null;
+    const items = sched[dateStr] || [];
+    const tMins = _timeToMins(t);
+    for (const s of items) {
+      if (!s.time) continue;
+      if (counselorId && s.counselorId !== counselorId) continue;
+      const sMins = _timeToMins(s.time);
+      const dur = s.duration || 50;
+      if (tMins >= sMins && tMins < sMins + dur) return s;
+    }
+    return null;
+  }
+
+  function _render() {
+    const counselorId = _mode === 'client' ? _cnslSelected : _pCnslSelected;
+
+    // Build 7 days: Mon–Sun
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(_weekStart);
+      d.setDate(d.getDate() + i);
+      days.push(d);
+    }
+
+    // Title
+    const s = days[0], e = days[6];
+    document.getElementById('schedPickerTitle').textContent =
+      `${s.getFullYear()}년 ${s.getMonth()+1}월 ${s.getDate()}일 – ${e.getMonth()+1}월 ${e.getDate()}일`;
+
+    // 08:00–22:00, 30분 간격
+    const ALL_TIMES = [];
+    for (let h = 8; h <= 22; h++) {
+      ALL_TIMES.push(`${String(h).padStart(2,'0')}:00`);
+      if (h < 22) ALL_TIMES.push(`${String(h).padStart(2,'0')}:30`);
+    }
+
+    const todayStr = dk(new Date());
+    const DAY_NAMES = ['일','월','화','수','목','금','토'];
+
+    let html = '<div class="schp-grid">';
+
+    // Header row
+    html += '<div class="schp-col-header corner"></div>';
+    for (const d of days) {
+      const dow = d.getDay();
+      const isToday = dk(d) === todayStr;
+      const isSun = dow === 0;
+      html += `<div class="schp-col-header${isToday ? ' today' : ''}${isSun ? ' sun' : ''}">
+        <div class="schp-day-name">${DAY_NAMES[dow]}</div>
+        <div class="schp-day-date">${d.getMonth()+1}/${d.getDate()}</div>
+      </div>`;
+    }
+
+    // 선택된 슬롯의 두 번째 칸 시간 (시작 +30분)
+    const _pendingTime2 = _pendingTime ? addMin(_pendingTime, 30) : null;
+
+    // Time rows
+    for (const t of ALL_TIMES) {
+      html += `<div class="schp-time-label">${t}</div>`;
+      for (const d of days) {
+        const dateStr = dk(d);
+        const isFirst  = _pendingDate === dateStr && _pendingTime  === t;
+        const isSecond = _pendingDate === dateStr && _pendingTime2 === t;
+        const booked = counselorId ? _getBookedSession(dateStr, counselorId, t) : null;
+        if (booked) {
+          const label = booked.type === 'client' ? booked.name : (booked.label || '일정');
+          html += `<div class="schp-cell"><div class="schp-slot booked" title="${label}">${label}</div></div>`;
+        } else if (isFirst) {
+          html += `<div class="schp-cell"><button class="schp-slot selected first" onclick="selectSchedSlot('${dateStr}','${t}')">선택됨</button></div>`;
+        } else if (isSecond) {
+          html += `<div class="schp-cell"><button class="schp-slot selected second" onclick="selectSchedSlot('${dateStr}','${_pendingTime}')"></button></div>`;
+        } else {
+          html += `<div class="schp-cell"><button class="schp-slot" onclick="selectSchedSlot('${dateStr}','${t}')">예약 가능</button></div>`;
+        }
+      }
+    }
+
+    html += '</div>';
+    document.getElementById('schedPickerGrid').innerHTML = html;
+  }
+})();
 
